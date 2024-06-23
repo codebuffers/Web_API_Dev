@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Weather and News</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    /* max-width: 600px; */ /* Remove this line */
+    width: 100%;
+    text-align: center;
+    overflow-y: auto; /* Add this line */
+    max-height: 90vh; /* Optional: Set a max height to prevent excessive scrolling */
+}
+        h1 {
+            margin-bottom: 20px;
+        }
+        .input-container {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: calc(100% - 22px);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .data {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .data-item {
+            background: #f9f9f9;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>City Weather and News</h1>
+        <div class="input-container">
+            <input type="text" id="cityInput" placeholder="Enter city name">
+            <div id="errorContainer" class="error"></div>
+        </div>
+        <button id="fetchButton">Fetch and Save Data</button>
+        <div class="data" id="dataContainer">
+            <!-- Data will be displayed here -->
+        </div>
+    </div>
+    <script>
+        document.getElementById('fetchButton').addEventListener('click', async () => {
+            const cityInput = document.getElementById('cityInput').value.trim();
+            const errorContainer = document.getElementById('errorContainer');
+            const dataContainer = document.getElementById('dataContainer');
+
+            // Clear previous data and errors
+            dataContainer.innerHTML = '';
+            errorContainer.innerHTML = '';
+
+            if (!cityInput) {
+                errorContainer.innerHTML = 'Please enter a city name.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/fetch-and-save?city=${cityInput}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data. Please check the city name and try again.');
+                }
+
+                const data = await response.json();
+
+                const weatherData = document.createElement('div');
+                weatherData.className = 'data-item';
+                const date = new Date(data.data1.dt * 1000);
+                weatherData.innerHTML = `
+                    <h3>Weather Data</h3>
+                    <p>City: ${data.data1.name}</p>
+                    <p>Date: ${date.toLocaleDateString()}</p>
+                    <p>Time: ${date.toLocaleTimeString()}</p>
+                    <p>Temperature: ${(data.data1.main.temp - 273.15).toFixed(2)}°C</p>
+                    <p>Humidity: ${data.data1.main.humidity}%</p>
+                    <p>Weather: ${data.data1.weather[0].description}</p>
+                `;
+                dataContainer.appendChild(weatherData);
+
+                const newsData = document.createElement('div');
+                newsData.className = 'data-item';
+                newsData.innerHTML = `
+                    <h3>Latest News</h3>
+                    ${data.data2.articles.slice(0, 10).map(article => `
+                        <div>
+                            <h4>${article.title}</h4>
+                            <p>${article.description}</p>
+                            <a href="${article.url}" target="_blank">Read more</a>
+                        </div>
+                    `).join('')}
+                `;
+                dataContainer.appendChild(newsData);
+            } catch (error) {
+                errorContainer.innerHTML = error.message;
+            }
+        });
+    </script>
+</body>
+</html>
