@@ -58,16 +58,6 @@ app.get('/fetch-and-save', async (req, res) => {
     const data1 = response1.data;
     let data2 = response2.data;
 
-    // Filter news articles to include only those related to the city
-    const filteredArticles = data2.articles.filter(article => {
-      const titleIncludesCity = article.title.toLowerCase().includes(city.toLowerCase());
-      const descriptionIncludesCity = article.description.toLowerCase().includes(city.toLowerCase());
-      return titleIncludesCity || descriptionIncludesCity;
-    });
-
-    // Replace data2.articles with filteredArticles
-    data2.articles = filteredArticles;
-
     // Save to MongoDB using Mongoose
     const apiData = new ApiData({ data1, data2 });
     await apiData.save();
